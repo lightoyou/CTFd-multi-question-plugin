@@ -1,8 +1,8 @@
-from CTFd.plugins import register_plugin_assets_directory, challenges, keys
-from CTFd.plugins.keys import get_key_class
-from CTFd.models import db, Solves, WrongKeys, Keys, Challenges, Files, Tags, Teams
+from CTFd.plugins.flags import get_flag_class
+from CTFd.models import db, Solves, Fails, Flags, Challenges, Files, Tags, Teams
 from CTFd import utils
-from CTFd.utils import admins_only, is_admin
+from CTFd.utils.user import is_admin
+from CTFd.utils.decorators import admins_only
 import json
 import datetime
 from flask import jsonify, session, request
@@ -46,9 +46,9 @@ class MultiQuestionChallenge(challenges.CTFdStandardChallenge):
     name = "multiquestionchallenge"
 
     templates = {  # Handlebars templates used for each aspect of challenge editing & viewing
-        'create': '/plugins/CTFd-multi-question-plugin/challenge-assets/multi-challenge-create.njk',
-        'update': '/plugins/CTFd-multi-question-plugin/challenge-assets/multi-challenge-update.njk',
-        'modal': '/plugins/CTFd-multi-question-plugin/challenge-assets/multi-challenge-modal.njk',
+        'create': '/plugins/CTFd-multi-question-plugin/challenge-assets/multi-challenge-create.html',
+        'update': '/plugins/CTFd-multi-question-plugin/challenge-assets/multi-challenge-update.html',
+        'modal': '/plugins/CTFd-multi-question-plugin/challenge-assets/multi-challenge-modal.html',
     }
     scripts = {  # Scripts that are loaded when a template is loaded
         'create': '/plugins/CTFd-multi-question-plugin/challenge-assets/multi-challenge-create.js',
@@ -205,7 +205,7 @@ class MultiQuestionChallenge(challenges.CTFdStandardChallenge):
         for chal_key in chal_keys:
             key_data = json.loads(chal_key.data)
 
-            if provided_keyname in key_data and get_key_class(chal_key.type).compare(chal_key, provided_key):
+            if provided_keyname in key_data and get_flag_class(chal_key.type).compare(chal_key, provided_key):
                 db.session.expunge_all()
                 partial = Partialsolve.query.filter_by(teamid=teamid, chalid=chalid).first()
 
@@ -280,7 +280,7 @@ def load(app):
         if request.method == 'GET':
             if keyid:
                 saved_key = Keys.query.filter_by(id=keyid).first_or_404()
-                key_class = get_key_class(saved_key.type)
+                key_class = get_flag_class(saved_key.type)
                 json_data = {
                     'id': saved_key.id,
                     'key': saved_key.flag,
