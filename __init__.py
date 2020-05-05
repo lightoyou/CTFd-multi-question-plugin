@@ -1,3 +1,4 @@
+from CTFd.plugins import register_plugin_assets_directory, challenges
 from CTFd.plugins.flags import get_flag_class
 from CTFd.models import db, Solves, Fails, Flags, Challenges, Files, Tags, Teams
 from CTFd import utils
